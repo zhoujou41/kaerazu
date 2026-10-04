@@ -208,7 +208,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
       <div class="chatLog" id="chatLog" aria-live="polite"></div>
       <div class="chatIn"><input id="chatInput" maxlength="60" placeholder="ひとこと（Enterで送信）" aria-label="会話の入力"><button id="chatSend" type="button">送る</button></div>
     </div>
-    <div class="help">自機はマウスの位置に付いてきます。速く動かすほどスピードゲージが溜まり、火力が最大3倍に。<br>左クリック：スロットを止める／回っていなければ技<br>右クリック：ボム<br>マウスホイール：ショット切替（アイテムで種類が増えたとき）<br>仲間と重なると、重なった人数×3倍の火力。<br>癒し手のゲージが満タンの間、仲間は無敵。</div>
+    <div class="help">自機はマウスの位置に付いてきます。速く動かすほどスピードゲージが溜まり、火力が最大3倍に。<br>左クリック：スロットを止める／回っていなければ技<br>右クリック：ボム（被弾した直後に押すと喰らいボム：残機が減らず、ボムを2つ使う）<br>マウスホイール：ショット切替（アイテムで種類が増えたとき）<br>仲間と重なると、重なった人数×3倍の火力。<br>癒し手のゲージが満タンの間、仲間は無敵。</div>
   </aside>
 </main>
 <script src="firebase-config.js"></script>
@@ -378,7 +378,7 @@ const target={x:W/2,y:H-90};
 let myName=SAVE.name||'名無し',myCls=0;
 
 function resetPlayer(){
-  Object.assign(P,{shots:[0],tot:{hits:0,bombs:0,conts:0},st:{base:0,hits:0,bombs:0,conts:0},continued:false,skCD:0,skMax:1,dashT:0,buffT:0,trail:[],banked:false,gmax:false,ward:false,allyWard:false,hurtT:0,respawn:0,lastLv:1,x:W/2,y:H-90,px:W/2,py:H-90,lives:3+SAVE.up.life,bombs:3+SAVE.up.bomb,shot:0,gauge:0,pm:1,mult:1,inv:120,clones:0,bombT:0,score:0,graze:0,dead:false,fireT:0,slot:{spin:false,idx:0,t:0}});
+  Object.assign(P,{dyingT:0,shots:[0],tot:{hits:0,bombs:0,conts:0},st:{base:0,hits:0,bombs:0,conts:0},continued:false,skCD:0,skMax:1,dashT:0,buffT:0,trail:[],banked:false,gmax:false,ward:false,allyWard:false,hurtT:0,respawn:0,lastLv:1,x:W/2,y:H-90,px:W/2,py:H-90,lives:3+SAVE.up.life,bombs:startBombs(),shot:0,gauge:0,pm:1,mult:1,inv:120,clones:0,bombT:0,score:0,graze:0,dead:false,fireT:0,slot:{spin:false,idx:0,t:0}});
   target.x=W/2;target.y=H-90;
 }
 resetPlayer();
@@ -1238,17 +1238,17 @@ function bossFire(b){
       // stream the 7-way, mind the slow ring; gravestones rise from the floor (learn the 5 columns)
       if(t%36===0)fan(x,y,7,0.16,3.0,{r:5,col:'#ff8fb8'});
       if(t%70===35)ring(x,y,22,2,t*0.05,{r:7,col:'#ffd27a'});
-      if(t%180===90)for(let k=0;k<5;k++)shoot(60+k*90,H-26,-Math.PI/2,0,{r:10,col:'#9db4ff',safe:35,hold:75,acc:0.05,max:2.6});
+      if(G.hell&&t%180===90)for(let k=0;k<5;k++)shoot(60+k*90,H-26,-Math.PI/2,0,{r:10,col:'#9db4ff',safe:35,hold:75,acc:0.05,max:2.6});
     }else if(b.phase===1){
       // three-arm spiral that reverses every 4 seconds
       const dir=Math.floor(t/240)%2?-1:1;
-      if(t%3===0){b.sa+=0.33*dir;for(let k=0;k<3;k++){shoot(x,y,b.sa+k*TAU/3,2.4,{r:5,col:'#ff6fa5'});shoot(x,y,-b.sa*0.6+k*TAU/3,1.8,{r:4,col:'#ffe0f0'});}}
+      if(t%3===0){b.sa+=0.33*dir;for(let k=0;k<3;k++){shoot(x,y,b.sa+k*TAU/3,2.4,{r:5,col:'#ff6fa5'});if(G.hell)shoot(x,y,-b.sa*0.6+k*TAU/3,1.8,{r:4,col:'#ffe0f0'});}}
       if(t%60===0)fan(x,y,3,0.12,3.4,{r:8,col:'#ffd27a'});
     }else if(b.phase===2){
       // rings with one gap that sways slowly: follow the road
       if(t===1)b.ga=aim(x,y);
       const ga=b.ga+Math.sin(t*0.006)*0.7;
-      if(t%22===0){const n=26,off=(t/22|0)%2?TAU/n/2:0;for(let i=0;i<n;i++){const a=ga+off+i*TAU/n;let da=a-ga;da=Math.atan2(Math.sin(da),Math.cos(da));if(Math.abs(da)<0.36)continue;shoot(x,y,a,1.9,{r:6,col:i%2?'#ff8fb8':'#fff0f6'});}}
+      if(t%22===0){const n=26,off=(t/22|0)%2?TAU/n/2:0;for(let i=0;i<n;i++){const a=ga+off+i*TAU/n;let da=a-ga;da=Math.atan2(Math.sin(da),Math.cos(da));if(Math.abs(da)<0.36)continue;if(!G.hell&&i%5===4)continue;shoot(x,y,a,1.9,{r:6,col:i%2?'#ff8fb8':'#fff0f6'});}}
       if(t%88===44)fan(x,y,3,0.09,2.6,{r:5,col:'#ffd27a'});
     }else{
       const tt=t%1400;
@@ -1454,13 +1454,23 @@ function stopSlot(){
   popup(it.name+(s.idx===2?'：'+SHOTN[myCls][P.shot]:''),P.x,P.y-30,70,it.c,16);
 }
 function bomb(){
-  if(G.mode!=='play'||P.dead||P.bombs<=0||P.bombT>0)return;
+  if(G.mode!=='play'||P.dead||P.bombs<=0)return;
+  if(P.dyingT>0){P.dyingT=0;P.bombs=Math.max(0,P.bombs-2);P.bombT=150;P.inv=Math.max(P.inv,200);G.flash=8;P.st.bombs++;P.tot.bombs++;G.phaseBombed=true;
+    G.cutin={cls:myCls,t:72,kurai:true};popup('喰らいボム！',W/2,H/2-30,70,'#f0e080',30);return;}
+  if(P.bombT>0)return;
   sfx('bomb');P.bombs--;P.bombT=150;P.inv=Math.max(P.inv,200);G.flash=6;P.st.bombs++;P.tot.bombs++;G.phaseBombed=true;G.cutin={cls:myCls,t:72};
 }
+function startBombs(){return 3+SAVE.up.bomb+(myCls===1?2:0);}
 function narrate(t){G.pops=G.pops.filter(p=>!p.n);G.pops.push({text:t,x:W/2,y:H-150,life:220,max:220,col:'#cfc3a6',size:15,n:true});}
 function hitPlayer(){
-  if(P.inv>0||P.dead||P.allyWard||P.dashT>0)return;
+  if(P.inv>0||P.dead||P.allyWard||P.dashT>0||P.dyingT>0)return;
   if(G.safe&&(P.x-G.safe.x)**2+(P.y-G.safe.y)**2<G.safe.r**2)return;
+  // 喰らいボム: a short window where a bomb cancels the hit
+  if(P.bombs>0){P.dyingT=12;G.red=Math.max(G.red,14);burst(P.x,P.y,'#e6dcc3',8);return;}
+  applyHit();
+}
+function applyHit(){
+  P.dyingT=0;
   const hx=P.x,hy=P.y;sfx('pichuun');
   burst(hx,hy,'#e6dcc3',24);burst(hx,hy,'#8b1a1a',24);addFx('f_hit',hx,hy,130,32);
   G.rings.push({x:hx,y:hy,r:6,v:7,life:40,max:40,col:'#b3362b',w:6},{x:hx,y:hy,r:2,v:4,life:55,max:55,col:'#e6dcc3',w:3});
@@ -1470,7 +1480,7 @@ function hitPlayer(){
   if(P.lives===1)setTimeout(()=>sfx('hurtlow'),500);
   popup('被弾！',W/2,H/2-24,100,'#c0303a',42);popup('残機 あと '+P.lives,W/2,H/2+18,100,'#e6dcc3',20);
   narrate(hurtLine(P.lives));
-  P.bombs=Math.max(P.bombs,2);P.inv=180;P.respawn=60;
+  P.bombs=Math.max(P.bombs,startBombs());P.inv=180;P.respawn=60;
   G.eb=G.eb.filter(b=>(b.x-hx)**2+(b.y-hy)**2>140*140);
 }
 
@@ -1493,6 +1503,7 @@ function step(){
   if(G.paused){if(G.frame%20===0)sendPresence();return;}
   {const humansAlive=!P.dead||REM.some(r=>!r.cpu);
    if(!humansAlive&&G.phase!=='result'){for(const f of G.fx){f.x+=f.vx;f.y+=f.vy;f.vx*=0.95;f.vy*=0.95;f.life--;}G.fx=G.fx.filter(f=>f.life>0);for(const p of G.pops)p.life--;G.pops=G.pops.filter(p=>p.life>0);if(G.frame%10===0)sendPresence();return;}}
+  if(P.dyingT>0){P.dyingT--;if(P.dyingT===0&&!P.dead)applyHit();}
   if(G.cut)stepCut();
   if(isHost&&CPU&&G.hitStop<=0)cpuStep(CPU);
   const auth=authority();
@@ -1727,6 +1738,7 @@ const PORT=[0,1,2].map(makePortrait);
 const PORT_URL=PORT_IMG.slice();
 PORT_IMG.forEach((u,i)=>{const im=new Image();im.onload=()=>{PORT[i]=im;};im.src=u;});
 const CUTLINE=['「全部、持っていけ。」','「道は、斬って作る。」','「まだ、誰も死なせない。」'];
+const CUTLINE_K=['「まだ、死ねない。」','「斬り返す。この一瞬で。」','「この身を盾にしてでも。」'];
 function announce(b,ph){G.bossCut={key:{priest:'b_priest',bishop:'b_bishop',foreman:'b_foreman',dragon:'b_dragon',abyss:'b_abyss',maw:img('m_maw_open')?'m_maw_open':'b_abyss'}[b.def.type],name:b.def.name,card:b.def.cards[ph],col:cm(b.def.col),t:84};sfx('declare');}
 function bossGauge(b){
   // the Maw shows each form on its own bar: 大口 4, 腹の中 5, 最終戦 1
@@ -1757,8 +1769,8 @@ function drawCutin(){
   ctx.globalAlpha=0.72*fade;band();ctx.fillStyle='#0a0705';ctx.fill();ctx.strokeStyle='#8a6a2e';ctx.lineWidth=2;ctx.stroke();
   ctx.globalAlpha=fade;ctx.save();band();ctx.clip();const pw=150,ph=183;ctx.drawImage(PORT[c.cls],W-pw-14+slide*220,H*0.22,pw,ph);ctx.restore();
   ctx.textAlign='left';ctx.font='800 22px "Shippori Mincho B1",serif';ctx.lineWidth=4;ctx.strokeStyle='#050403';
-  const tx=24-slide*160,ty=H*0.44;ctx.strokeText(CUTLINE[c.cls],tx,ty);ctx.fillStyle='#e6dcc3';ctx.fillText(CUTLINE[c.cls],tx,ty);
-  ctx.font='700 13px "Shippori Mincho B1",serif';ctx.fillStyle='#d9a441';ctx.fillText(CLASSES[c.cls].name+'　ボム',tx,ty-30);
+  const line=(c.kurai?CUTLINE_K:CUTLINE)[c.cls];const tx=24-slide*160,ty=H*0.44;ctx.strokeText(line,tx,ty);ctx.fillStyle=c.kurai?'#f0e080':'#e6dcc3';ctx.fillText(line,tx,ty);
+  ctx.font='700 13px "Shippori Mincho B1",serif';ctx.fillStyle=c.kurai?'#c0303a':'#d9a441';ctx.fillText(CLASSES[c.cls].name+(c.kurai?'　喰らいボム（ボム2消費）':'　ボム'),tx,ty-30);
   ctx.restore();
 }
 
@@ -2312,7 +2324,7 @@ function setMsg(t){const m=$('msg');if(m)m.textContent=t;}
 function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
 const CLASS_INFO=[
   {pros:'射程が長く、どこからでも当てられる。初めてならこれ。',cons:'火力は並。',shots:'扇（拡散）／追（誘導）／貫（貫通）'},
-  {pros:'近くの敵には滅法強い。ボスも早く倒せる。ゲージ満タンのときは斬撃で近くの弾も消せる（消すとゲージがごっそり減る）。',cons:'届くのは目の前だけ。敵に寄る度胸がいる。',shots:'斬（薙ぎ払い）／突（遠めの突き）／旋（回転斬り）'},
+  {pros:'近くの敵には滅法強い。ボスも早く倒せる。ゲージ満タンのときは斬撃で近くの弾も消せる（消すとゲージがごっそり減る）。初期ボムが2つ多い。',cons:'届くのは目の前だけ。敵に寄る度胸がいる。',shots:'斬（薙ぎ払い）／突（遠めの突き）／旋（回転斬り）'},
   {pros:'スピードゲージ満タンの間、仲間全員が無敵になる。協力プレイの要。',cons:'ゲージがすぐ減る。自分は守れない。攻撃は弱め。ひとりだと守りは無意味。',shots:'扇／追／貫（威力は銃士の6割）'}];
 function skillLvText(i){const u=SAVE.up;
   if(i===0)return 'クールタイム '+(5-u.g_cd)+'秒・無敵 '+(0.1+u.g_iv*0.1).toFixed(1)+'秒';
@@ -2602,7 +2614,7 @@ function showDeath(){
   ov.append(el('div','code',P.score.toLocaleString('ja-JP')));
   ov.append(el('div','best',G.test?'練習モードなので、スコアは残りません':'ここでやめれば、このスコアが所持金になります。コンティニューするとスコアは0に戻ります。'));
   const c=el('button','btn','コンティニュー（スコアは0）');
-  c.onclick=()=>{{const earned=P.score-P.st.base;P.st.base=-earned;}P.dead=false;P.lives=3+SAVE.up.life;P.bombs=Math.max(P.bombs,3+SAVE.up.bomb);P.score=0;P.graze=0;P.inv=180;P.respawn=60;P.x=target.x;P.y=target.y;P.banked=false;
+  c.onclick=()=>{{const earned=P.score-P.st.base;P.st.base=-earned;}P.dead=false;P.lives=3+SAVE.up.life;P.bombs=Math.max(P.bombs,startBombs());P.shots=[0];P.shot=0;P.score=0;P.graze=0;P.inv=180;P.respawn=60;P.x=target.x;P.y=target.y;P.banked=false;
     P.st.conts++;P.tot.conts++;
     sfx('cont');P.continued=true;ov.classList.add('hide');ov.classList.remove('spect');snapRun();popup('コンティニュー',P.x,P.y-40,60,'#e6dcc3',20);narrate('「また立ち上がった。痛みは、消えていない。」');};
   const q=el('button','btn alt','やめる（スコアを所持金に）');q.onclick=()=>showResult();
