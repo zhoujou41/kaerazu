@@ -19,6 +19,14 @@
           ".validate": "newData.hasChildren(['sc','n','at']) && newData.child('sc').isNumber() && newData.child('sc').val() >= 0 && newData.child('sc').val() < 100000000 && newData.child('n').isString() && newData.child('n').val().length <= 12"
         }
       }
+    },
+    "nbstats": {
+      ".read": true,
+      ".indexOn": ["sc"],
+      "$uid": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['nb','at'])"
+      }
     }
   }
 }
