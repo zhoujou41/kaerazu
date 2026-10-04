@@ -44,7 +44,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .overlay>:last-child{margin-bottom:auto}
 .overlay.spect>:first-child,.overlay.spect>:last-child{margin-top:0;margin-bottom:0}
 .overlay>*{flex-shrink:0}
-.logo{font-weight:800;font-size:clamp(38px,10vmin,66px);line-height:1.05;letter-spacing:.14em;color:#e6dcc3;text-shadow:0 2px 0 #3a0c0c,0 0 28px rgba(179,54,43,.6)}
+.logo{white-space:nowrap;font-weight:800;font-size:clamp(38px,10vmin,66px);line-height:1.05;letter-spacing:.14em;color:#e6dcc3;text-shadow:0 2px 0 #3a0c0c,0 0 28px rgba(179,54,43,.6)}
 .tag{color:#b8a889;margin:-2px 0 6px;font-weight:500}
 .overlay input{font:inherit;font-size:16px;padding:8px 12px;border:1px solid #5c4a33;background:#17120e;color:#e6dcc3;width:220px;text-align:center}
 .btn{font:inherit;font-weight:700;font-size:16px;padding:9px 18px;border:1px solid #c9a14a;cursor:pointer;min-width:220px;background:#6e1414;color:#f0e6cc;letter-spacing:.06em}
@@ -84,7 +84,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .bl{color:#a8987c;font-size:13px;width:74px}.bv{color:#d9a441;font-weight:800;font-size:18px}.bn{font-size:12px;color:#cfc3a6}
 .linkbtn{font:inherit;font-size:13px;background:none;border:0;color:#d9a441;text-decoration:underline;cursor:pointer;padding:2px}
 .scorebox{width:min(470px,100%)}.scroll{max-height:52vh;overflow:auto;border:1px solid #3a2e22}
-.stable{width:100%;font-size:12.5px}.stable th,.stable td{padding:4px 6px;white-space:nowrap}.stable td.nm{text-align:left}.stable tr.mine td{background:rgba(217,164,65,.15)}
+.stable{width:100%;font-size:11.5px}.stable th,.stable td{padding:3px 5px;white-space:nowrap}.fitline{white-space:nowrap;overflow:hidden;max-width:100%}.stable td.nm{text-align:left}.stable tr.mine td{background:rgba(217,164,65,.15)}
 .stable td:last-child{color:inherit}
 .modalbg{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:14px}
 .modal{width:min(380px,100%);max-height:100%;overflow:auto;background:#17120e;border:3px double #8a6a2e;padding:14px 16px;color:#e6dcc3;display:flex;flex-direction:column;gap:10px}
@@ -2445,13 +2445,13 @@ let nbDiff='normal';
 function showNbStats(d){screen('nb');nbDiff=d||nbDiff;
   ov.append(el('div','logo','ノーボム率'));
   const td=el('div','toggle');for(const [k,lab] of [['easy','イージー'],['normal','通常'],['hell','地獄']]){const b=el('button','btn',lab);b.setAttribute('aria-pressed',nbDiff===k?'true':'false');b.onclick=()=>showNbStats(k);td.append(b);}
-  ov.append(td,el('div','small','ボム・喰らいボム・被弾なしでその技を越えた割合（自分／全員）'));
+  ov.append(td,el('div','small fitline','ボム・喰らいボム・被弾なしでその技を越えた割合（自分／全員）'));
   const h=el('div','scorebox');h.id='nbList';ov.append(h);
   const bk=el('button','btn alt','戻る');bk.onclick=showTitle;ov.append(bk);
   drawNbStats();if(dbApi)loadNbAll();}
 function drawNbStats(){const h=$('nbList');if(!h)return;h.textContent='';
   const pct=v=>v&&v[0]?Math.round(v[1]/v[0]*100)+'%':'—',cnt=v=>v?v[1]+'/'+v[0]:'0/0';
-  h.append(el('div','small',NB_ALL?'全員：'+NB_N+'人分を集計':(dbApi&&!NB_ERR?'全員の分を読み込み中…':'全員の分には接続できません（自分の分だけ表示）')));
+  h.append(el('div','small fitline',NB_ALL?'全員：'+NB_N+'人分を集計':(dbApi&&!NB_ERR?'全員の分を読み込み中…':(netMode==='firebase'?'全員の分を読めません（Firebaseのルールに nbstats が未登録の可能性）':'全員の分には接続できません（自分の分だけ表示）'))));
   const wrap=el('div','scroll');const t=el('table','rtable stable');const hd=el('tr');['ボスの技','自分 成功/挑戦','自分','全員 成功/挑戦','全員'].forEach(x=>hd.append(el('th',null,x)));t.append(hd);
   const maxSt=nbDiff==='hell'?5:4;
   for(let st=1;st<=maxSt;st++){const d=BOSSES[st];const sh=el('tr');const th=el('th','nm',STAGE_NAMES[st].split('　')[0]+'　'+d.name);th.colSpan=5;th.style.color='#d9a441';sh.append(th);t.append(sh);
@@ -2476,12 +2476,12 @@ function drawScoreList(){
   const key=scoreTab+'-'+scoreDiff;
   let list=BOARD[key],note='みんなのスコア（上位1000件）';
   if(!list){list=SAVE.hist.filter(x=>x.m===scoreTab&&(x.d||'normal')===scoreDiff).slice().sort((a,b)=>b.sc-a.sc);note=dbApi&&!BOARD_ERR[key]?'読み込み中…（いまは自分の記録だけ表示）':'みんなのスコアに接続できないため、自分の記録だけ表示しています';}
-  h.append(el('div','small',(scoreTab==='coop'?'協力プレイ':'一人プレイ')+'・'+DIFF_NAME[scoreDiff]+'　'+note+'　'+list.length+'件'));
+  h.append(el('div','small fitline',(scoreTab==='coop'?'協力プレイ':'一人プレイ')+'・'+DIFF_NAME[scoreDiff]+'　'+note+'　'+list.length+'件'));
   if(!list.length){h.append(el('div','small','まだ記録がありません'));return;}
   const wrap=el('div','scroll');const t=el('table','rtable stable');const hd=el('tr');['順位','スコア','ニックネーム','日時','内容'].forEach(x=>hd.append(el('th',null,x)));t.append(hd);
   list.slice(0,1000).forEach((e,i)=>{const tr=el('tr');if(e.u&&userId&&e.u===userId)tr.className='mine';
     const info=CLASSES[e.c].name+'・'+(e.cl?'クリア':STAGE_NAMES[e.g].split('　')[0]+'まで');
-    tr.append(el('td',null,String(i+1)),el('td',null,e.sc.toLocaleString('ja-JP')),el('td','nm',e.n),el('td',null,fmtDate(e.at)),el('td','nm',info));t.append(tr);});
+    tr.append(el('td',null,String(i+1)),el('td',null,e.sc.toLocaleString('ja-JP')),el('td','nm',e.n),el('td',null,fmtDate(e.at).slice(2)),el('td','nm',info));t.append(tr);});
   wrap.append(t);h.append(wrap);
 }
 function showSettings(){
@@ -2842,6 +2842,11 @@ window.addEventListener('keydown',e=>{if(e.target&&(e.target.tagName==='INPUT'||
 ov.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('button'))sfx('click');});
 box.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('.modal button'))sfx('click');});
 
+function fitText(){const maxW=ov.clientWidth-32;if(maxW<=0)return;
+  for(const e of ov.querySelectorAll('.logo,.fitline')){e.style.fontSize='';const lim=Math.min(maxW,(e.parentElement&&e.parentElement.clientWidth)||maxW);let fs=parseFloat(getComputedStyle(e).fontSize);
+    while(e.scrollWidth>lim&&fs>9){fs-=0.5;e.style.fontSize=fs+'px';}}}
+new MutationObserver(()=>requestAnimationFrame(fitText)).observe(ov,{childList:true,subtree:true});
+window.addEventListener('resize',()=>requestAnimationFrame(fitText));
 // ---------- loop ----------
 let last=performance.now(),accu=0;
 function frame(now){
